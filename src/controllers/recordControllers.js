@@ -26,7 +26,10 @@ const createRecord = (req, res) => {
 };
 
 const getAllRecords = (req, res) => {
-  const { type, category, date } = req.query;
+  const { type, category, date, search } = req.query;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
 
   let query = "SELECT * FROM records WHERE deleted_at IS NULL";
   const params = [];
@@ -46,7 +49,16 @@ const getAllRecords = (req, res) => {
     params.push(date);
   }
 
-  query += " ORDER BY date DESC";
+  if (search) {
+  query += ' AND (notes LIKE ? OR category LIKE ?)'
+  const searchTerm = `%${search}%`
+  params.push(searchTerm)
+  params.push(searchTerm)
+}
+
+  query += ' ORDER BY date DESC LIMIT ? OFFSET ?'
+  params.push(limit)
+  params.push(offset)
 
   const records = db.prepare(query).all(...params);
   res.json(records);
