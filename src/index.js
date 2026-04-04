@@ -20,6 +20,9 @@ app.use('/api/users',userRoutes)
 const recordRoutes = require("./routes/records")
 app.use('/api/records',recordRoutes)
 
+const analyticsRoutes = require("./routes/analytics")
+app.use('/api/analytics',analyticsRoutes)
+
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
