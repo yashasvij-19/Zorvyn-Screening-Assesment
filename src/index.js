@@ -17,6 +17,9 @@ app.get('/api/protected', authenticate, authorize('admin'), (req, res) => {
 const userRoutes = require("./routes/users")
 app.use('/api/users',userRoutes)
 
+const recordRoutes = require("./routes/records")
+app.use('/api/records',recordRoutes)
+
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });

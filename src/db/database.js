@@ -23,6 +23,7 @@ db.exec(`
         category TEXT NOT NULL,
         date TEXT NOT NULL,
         notes TEXT, 
+        deleted_at DATETIME DEFAULT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
         `)
