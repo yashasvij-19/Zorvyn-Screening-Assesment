@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinDash</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+    body { background: #f5f5f5; color: #1a1a1a; }
+    #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f5f5f5; }
+    .login-card { background: white; padding: 40px; border-radius: 12px; border: 1px solid #e5e5e5; width: 360px; }
+    .login-card h2 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+    .login-card p { font-size: 13px; color: #888; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+    .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+    .form-group input:focus { border-color: #7F77DD; }
+    .btn-login { width: 100%; padding: 10px; background: #7F77DD; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500; }
+    .btn-login:hover { background: #534AB7; }
+    .error-msg { color: #A32D2D; font-size: 12px; margin-top: 8px; display: none; }
+    #app { display: none; }
+    .shell { display: flex; min-height: 100vh; }
+    .sidebar { width: 200px; background: #fafafa; border-right: 1px solid #e5e5e5; padding: 16px 0; display: flex; flex-direction: column; }
+    .sidebar-logo { padding: 4px 16px 16px; font-weight: 500; font-size: 15px; border-bottom: 1px solid #e5e5e5; margin-bottom: 8px; }
+    .sidebar-logo span { font-size: 11px; color: #888; display: block; font-weight: 400; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; font-size: 13px; color: #666; }
+    .nav-item:hover { background: white; color: #1a1a1a; }
+    .nav-item.active { background: white; color: #1a1a1a; font-weight: 500; border-right: 2px solid #7F77DD; }
+    .sidebar-footer { margin-top: auto; padding: 12px 16px; border-top: 1px solid #e5e5e5; }
+    .user-pill { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: #EEEDFE; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: #3C3489; flex-shrink: 0; }
+    .user-info { font-size: 12px; }
+    .user-name { color: #1a1a1a; font-weight: 500; }
+    .user-role { color: #888; font-size: 11px; }
+    .logout-btn { width: 100%; padding: 6px; font-size: 12px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: transparent; color: #666; }
+    .logout-btn:hover { background: #f5f5f5; }
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar { padding: 12px 20px; border-bottom: 1px solid #e5e5e5; display: flex; align-items: center; justify-content: space-between; background: white; }
+    .topbar-title { font-size: 15px; font-weight: 500; }
+    .btn { padding: 6px 14px; font-size: 13px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: white; color: #1a1a1a; }
+    .btn:hover { background: #f5f5f5; }
+    .btn-primary { background: #7F77DD; border-color: #7F77DD; color: white; }
+    .btn-primary:hover { background: #534AB7; }
+    .content { padding: 20px; flex: 1; overflow-y: auto; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: #f5f5f5; border-radius: 8px; padding: 14px 16px; }
+    .stat-label { font-size: 12px; color: #666; margin-bottom: 6px; }
+    .stat-value { font-size: 22px; font-weight: 500; }
+    .income-val { color: #0F6E56; }
+    .expense-val { color: #A32D2D; }
+    .net-val { color: #3C3489; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .card { background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 16px; }
+    .card-title { font-size: 13px; font-weight: 500; margin-bottom: 14px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .bar-label { font-size: 12px; color: #666; min-width: 80px; }
+    .bar-track { flex: 1; height: 6px; background: #f5f5f5; border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; }
+    .bar-amt { font-size: 12px; color: #666; min-width: 70px; text-align: right; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead tr { border-bottom: 1px solid #e5e5e5; }
+    th { text-align: left; padding: 8px 10px; font-weight: 500; font-size: 12px; color: #666; }
+    td { padding: 9px 10px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+    tr:hover td { background: #fafafa; }
+    .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+    .badge-income { background: #E1F5EE; color: #0F6E56; }
+    .badge-expense { background: #FCEBEB; color: #A32D2D; }
+    .badge-admin { background: #EEEDFE; color: #3C3489; }
+    .badge-analyst { background: #E6F1FB; color: #185FA5; }
+    .badge-viewer { background: #F1EFE8; color: #444441; }
+    .amount-income { color: #0F6E56; font-weight: 500; }
+    .amount-expense { color: #A32D2D; font-weight: 500; }
+    .view { display: none; flex-direction: column; flex: 1; }
+    .view.active { display: flex; }
+    input, select { padding: 6px 10px; font-size: 13px; border: 1px solid #ddd; border-radius: 8px; background: white; color: #1a1a1a; outline: none; font-family: system-ui, sans-serif; }
+    input:focus, select:focus { border-color: #7F77DD; }
+    .loading { color: #888; font-size: 13px; padding: 20px 0; }
+    .inline-select { font-size: 12px; padding: 3px 6px; border-radius: 6px; border: 1px solid #ddd; background: white; cursor: pointer; }
+    .panel { background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 20px; margin-bottom: 20px; max-width: 420px; }
+    .panel-title { font-size: 14px; font-weight: 500; margin-bottom: 16px; }
+    .success-msg { color: #0F6E56; font-size: 12px; margin-bottom: 8px; display: none; }
+    .err { color: #A32D2D; font-size: 12px; margin-bottom: 8px; display: none; }
+  </style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <h2>FinDash</h2>
+    <p>Sign in to your account</p>
+    <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••"></div>
+    <button class="btn-login" onclick="handleLogin()">Sign in</button>
+    <div class="error-msg" id="login-error">Invalid email or password</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="shell">
+    <div class="sidebar">
+      <div class="sidebar-logo">FinDash <span>Finance dashboard</span></div>
+      <div class="nav-item active" onclick="showView('dashboard',this)">Dashboard</div>
+      <div class="nav-item" onclick="showView('records',this)">Records</div>
+      <div class="nav-item" id="users-nav" onclick="showView('users',this)" style="display:none">Users</div>
+      <div class="sidebar-footer">
+        <div class="user-pill">
+          <div class="avatar" id="user-avatar">--</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name">--</div>
+            <div class="user-role" id="user-role">--</div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">Sign out</button>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <div id="view-dashboard" class="view active">
+        <div class="topbar">
+          <div class="topbar-title">Dashboard</div>
+        </div>
+        <div class="content">
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Total income</div><div class="stat-value income-val" id="total-income">--</div></div>
+            <div class="stat-card"><div class="stat-label">Total expenses</div><div class="stat-value expense-val" id="total-expenses">--</div></div>
+            <div class="stat-card"><div class="stat-label">Net balance</div><div class="stat-value net-val" id="net-balance">--</div></div>
+            <div class="stat-card"><div class="stat-label">Total records</div><div class="stat-value" id="total-records">--</div></div>
+          </div>
+          <div class="two-col">
+            <div class="card">
+              <div class="card-title">Spending by category</div>
+              <div id="category-bars"><div class="loading">Loading...</div></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Recent activity</div>
+              <div id="recent-list"><div class="loading">Loading...</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-records" class="view">
+        <div class="topbar">
+          <div class="topbar-title">Records</div>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="search-input" placeholder="Search..." style="width:150px" oninput="loadRecords()">
+            <select id="type-filter" onchange="loadRecords()">
+              <option value="">All types</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </div>
+        </div>
+        <div class="content">
+          <table>
+            <thead><tr><th>Date</th><th>Category</th><th>Type</th><th>Amount</th><th>Notes</th></tr></thead>
+            <tbody id="records-tbody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="view-users" class="view">
+        <div class="topbar">
+          <div class="topbar-title">User management</div>
+          <button class="btn btn-primary" onclick="toggleAddUser()">+ Add user</button>
+        </div>
+        <div class="content">
+          <div class="panel" id="add-user-panel" style="display:none">
+            <div class="panel-title">Add new user</div>
+            <div class="form-group"><label>Name</label><input type="text" id="new-name" placeholder="Full name"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="new-email" placeholder="email@findash.com"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="new-password" placeholder="Min 6 characters"></div>
+            <div class="form-group">
+              <label>Role</label>
+              <select id="new-role">
+                <option value="viewer">Viewer</option>
+                <option value="analyst">Analyst</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="err" id="add-user-err"></div>
+            <div class="success-msg" id="add-user-success">User created successfully</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary" onclick="handleAddUser()">Create user</button>
+              <button class="btn" onclick="toggleAddUser()">Cancel</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="users-tbody"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const api = (path, options = {}) => {
+  const token = localStorage.getItem('token')
+  return fetch(path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers
+    }
+  }).then(r => r.json())
+}
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value
+  const password = document.getElementById('login-password').value
+  const err = document.getElementById('login-error')
+  err.style.display = 'none'
+  try {
+    const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+    if (!data.token) { err.style.display = 'block'; return }
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('user', JSON.stringify(data.user))
+    initApp(data.user)
+  } catch { err.style.display = 'block' }
+}
+
+function initApp(user) {
+  document.getElementById('login-screen').style.display = 'none'
+  document.getElementById('app').style.display = 'block'
+  document.getElementById('user-name').textContent = user.name
+  document.getElementById('user-role').textContent = user.role
+  document.getElementById('user-avatar').textContent = user.name.split(' ').map(n => n[0]).join('').toUpperCase()
+  if (user.role === 'admin') document.getElementById('users-nav').style.display = 'flex'
+  loadDashboard()
+}
+
+async function loadDashboard() {
+  const summary = await api('/api/analytics/summary')
+  document.getElementById('total-income').textContent = '₹' + summary.totalIncome.toLocaleString('en-IN')
+  document.getElementById('total-expenses').textContent = '₹' + summary.totalExpense.toLocaleString('en-IN')
+  document.getElementById('net-balance').textContent = '₹' + summary.netBalance.toLocaleString('en-IN')
+  const records = await api('/api/records')
+  document.getElementById('total-records').textContent = records.length
+  const categories = await api('/api/analytics/by-category')
+  const maxTotal = Math.max(...categories.map(c => c.total))
+  document.getElementById('category-bars').innerHTML = categories.slice(0, 5).map(c => `
+    <div class="bar-row">
+      <div class="bar-label">${c.category}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(c.total/maxTotal*100).toFixed(0)}%;background:${c.type==='income'?'#1D9E75':'#7F77DD'}"></div></div>
+      <div class="bar-amt">₹${c.total.toLocaleString('en-IN')}</div>
+    </div>`).join('')
+  const recent = await api('/api/analytics/recent-activity')
+  document.getElementById('recent-list').innerHTML = recent.map(r => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5">
+      <div>
+        <div style="font-size:13px">${r.category}</div>
+        <div style="font-size:11px;color:#888">${r.date}</div>
+      </div>
+      <div class="amount-${r.type}">${r.type==='income'?'+':'-'}₹${r.amount.toLocaleString('en-IN')}</div>
+    </div>`).join('')
+}
+
+async function loadRecords() {
+  const search = document.getElementById('search-input').value
+  const type = document.getElementById('type-filter').value
+  let url = '/api/records?'
+  if (search) url += `search=${search}&`
+  if (type) url += `type=${type}&`
+  const records = await api(url)
+  document.getElementById('records-tbody').innerHTML = records.length === 0
+    ? '<tr><td colspan="5" style="color:#888;padding:20px 10px">No records found</td></tr>'
+    : records.map(r => `
+      <tr>
+        <td>${r.date}</td>
+        <td>${r.category}</td>
+        <td><span class="badge badge-${r.type}">${r.type}</span></td>
+        <td class="amount-${r.type}">${r.type==='income'?'+':'-'}₹${r.amount.toLocaleString('en-IN')}</td>
+        <td style="color:#888">${r.notes || '—'}</td>
+      </tr>`).join('')
+}
+
+async function loadUsers() {
+  const users = await api('/api/users')
+  document.getElementById('users-tbody').innerHTML = users.map(u => `
+    <tr>
+      <td>${u.name}</td>
+      <td style="color:#888">${u.email}</td>
+      <td>
+        <select class="inline-select" onchange="updateRole(${u.id}, this.value)">
+          <option value="viewer" ${u.role==='viewer'?'selected':''}>Viewer</option>
+          <option value="analyst" ${u.role==='analyst'?'selected':''}>Analyst</option>
+          <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+        </select>
+      </td>
+      <td>
+        <select class="inline-select" onchange="updateStatus(${u.id}, this.value)">
+          <option value="active" ${u.status==='active'?'selected':''}>Active</option>
+          <option value="inactive" ${u.status==='inactive'?'selected':''}>Inactive</option>
+        </select>
+      </td>
+      <td><span class="badge" style="background:${u.status==='active'?'#E1F5EE':'#FCEBEB'};color:${u.status==='active'?'#0F6E56':'#A32D2D'}">${u.status}</span></td>
+    </tr>`).join('')
+}
+
+async function updateRole(id, role) {
+  await api(`/api/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) })
+}
+
+async function updateStatus(id, status) {
+  await api(`/api/users/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) })
+  loadUsers()
+}
+
+function toggleAddUser() {
+  const panel = document.getElementById('add-user-panel')
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none'
+  document.getElementById('add-user-err').style.display = 'none'
+  document.getElementById('add-user-success').style.display = 'none'
+}
+
+async function handleAddUser() {
+  const name = document.getElementById('new-name').value
+  const email = document.getElementById('new-email').value
+  const password = document.getElementById('new-password').value
+  const role = document.getElementById('new-role').value
+  const errEl = document.getElementById('add-user-err')
+  const successEl = document.getElementById('add-user-success')
+  errEl.style.display = 'none'
+  successEl.style.display = 'none'
+  const data = await api('/api/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password, role }) })
+  if (data.message !== 'User created successfully') {
+    errEl.textContent = data.errors ? data.errors.map(e => e.message).join(', ') : data.message
+    errEl.style.display = 'block'
+    return
+  }
+  successEl.style.display = 'block'
+  document.getElementById('new-name').value = ''
+  document.getElementById('new-email').value = ''
+  document.getElementById('new-password').value = ''
+  loadUsers()
+}
+
+function showView(name, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+  document.getElementById('view-' + name).classList.add('active')
+  if (el) el.classList.add('active')
+  if (name === 'records') loadRecords()
+  if (name === 'users') loadUsers()
+}
+
+function handleLogout() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  document.getElementById('login-screen').style.display = 'flex'
+  document.getElementById('app').style.display = 'none'
+}
+
+const saved = localStorage.getItem('user')
+const token = localStorage.getItem('token')
+if (saved && token) initApp(JSON.parse(saved))
+</script>
+</body>
+</html>
