@@ -1,10 +1,14 @@
 require("dotenv").config()
+
 const express = require("express")
 const app = express()
+const rateLimit = require('express-rate-limit')
 
 require("./db/database")
 
 app.use(express.json())
+app.use(limiter)
+
 
 const authRoutes = require("./routes/auth")
 app.use("/api/auth", authRoutes)
@@ -22,6 +26,12 @@ app.use('/api/records',recordRoutes)
 
 const analyticsRoutes = require("./routes/analytics")
 app.use('/api/analytics',analyticsRoutes)
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: {message:'Too many requests, try again later'}
+})
 
 
 app.get("/health", (req, res) => {
