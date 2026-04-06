@@ -11,6 +11,7 @@ const limiter = rateLimit({
 
 
 require("./db/database")
+require('./db/seed')
 
 app.use(express.json())
 app.use(express.static('public'))

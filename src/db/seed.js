@@ -28,9 +28,9 @@ const users = [
 ];
 
 const insertUser = db.prepare(`
-  INSERT INTO users (name, email, password, role) 
+  INSERT OR IGNORE INTO users (name, email, password, role)
   VALUES (?, ?, ?, ?)
-`);
+`)
 
 users.forEach((user) => {
   const hashedPassword = bcrypt.hashSync(user.password, 10);
@@ -98,9 +98,10 @@ const records = [
   },
 ];
 
-const insertRecords = db.prepare(
-  `INSERT INTO records (amount, type, category, date, notes) VALUES (?,?,?,?,?)`,
-);
+const insertRecord = db.prepare(`
+  INSERT OR IGNORE INTO records (amount, type, category, date, notes)
+  VALUES (?, ?, ?, ?, ?)
+`)
 
 records.forEach((record) => {
   insertRecords.run(
