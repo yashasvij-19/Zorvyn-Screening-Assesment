@@ -104,7 +104,7 @@ const insertRecord = db.prepare(`
 `)
 
 records.forEach((record) => {
-  insertRecords.run(
+  insertRecord.run(
     record.amount,
     record.type,
     record.category,
