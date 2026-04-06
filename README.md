@@ -75,6 +75,14 @@ Routes, controllers, and middleware are separated into their own folders. This m
 
 ---
 
+## Known limitations
+
+- **SQLite on deployment** — Render's free tier does not persist files between deploys, so the SQLite database resets on each deployment. The seed script runs to populate sample data.
+- **No token refresh** — JWT tokens expire after 24 hours and there is no refresh token mechanism. Users need to log in again after expiry.
+- **No email verification** — the register endpoint accepts any email format that passes validation without verifying it actually exists.
+
+---
+
 ## Test credentials
 
 After running the seed script, these accounts are available:
