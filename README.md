@@ -116,11 +116,15 @@ Authorization: Bearer <token>
 | DELETE | `/api/records/:id` | Admin only | Soft delete a record |
 
 **Supported query parameters:**
+
+```
 GET /api/records?type=expense
 GET /api/records?category=Marketing
 GET /api/records?date=2024-04-01
 GET /api/records?search=salary
 GET /api/records?page=1&limit=5
+```
+
 
 **Create record request body:**
 ```json
@@ -182,29 +186,16 @@ GET /api/records?page=1&limit=5
 ## Design decisions
 
 **SQLite over a full database server**
-Given the scope of this assessment, SQLite made more sense than spinning up a PostgreSQL or MySQL instance. It is file based, requires zero configuration, and the better-sqlite3 driver is synchronous which keeps the code straightforward. In a production system with multiple concurrent users, a proper database server would be the right call.
+SQLite is file based, requires zero configuration, and since better-sqlite3 driver is synchronous,it keeps the code straightforward.
 
 **JWT over sessions**
-JWTs are stateless — the server does not need to store session data anywhere. The user's id, name and role are baked into the token itself, which means the middleware can verify identity and permissions in a single step without a database lookup on every request.
-
-**Soft delete over hard delete**
-Financial records should never be permanently erased. Marking a record with a `deleted_at` timestamp keeps the data intact for auditing while hiding it from normal API responses. This is standard practice in any system that handles money.
+JWTs are stateless — the server does not need to store session data anywhere. The user's id, name and role are included in the token itself and so the middleware can verify identity and permissions in a single step without a database lookup on every request.
 
 **Role based middleware**
-Rather than checking roles inside each controller, a reusable `authorize(...roles)` middleware handles it at the route level. This keeps controllers focused on business logic and makes permission rules easy to read at a glance in the route files.
+A reusable `authorize(...roles)` middleware handles the roles at the route level, Rather than checking it inside each controller, this makes permission rules easy to read in the route files.
 
 **MVC style folder structure**
-Routes, controllers, and middleware are separated into their own folders. This makes the codebase easy to navigate and scale — adding a new feature means adding a route file and a controller file without touching anything else.
-
----
-
-## Known limitations
-
-- **SQLite on deployment** — Render's free tier does not persist files between deploys, so the SQLite database resets on each deployment. The seed script runs to populate sample data. In production, this would be replaced with a hosted database like PostgreSQL.
-- **Case sensitive search** — the search feature on records is case sensitive for non-ASCII characters. Searching "salaries" works but "SALARIES" may not match in all cases.
-- **No token refresh** — JWT tokens expire after 24 hours and there is no refresh token mechanism. Users need to log in again after expiry.
-- **No email verification** — the register endpoint accepts any email format that passes validation without verifying it actually exists.
-
+Routes, controllers, and middleware are separated into their own folders. This makes the codebase easy to navigate and scale.
 ---
 
 ## Test credentials
