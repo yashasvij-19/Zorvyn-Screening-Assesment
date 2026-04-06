@@ -13,7 +13,7 @@ const login = (req, res) => {
 
   const validPassword = bcrypt.compareSync(password, user.password);
 
-  if (!password) {
+  if (!validPassword) {
     return res.status(401).json({ message: "Invalid password" });
   }
 
@@ -53,7 +53,7 @@ const register = (req, res) => {
     .prepare('INSERT INTO users (name, email, password, role) VALUES (?,?,?,?)')
     .run(name, email, hashedPassword, userRole);
 
-  res.status(200).json({
+  res.status(201).json({
     message: "User created successfully",
     userId: result.lastInsertRowid,
   });
